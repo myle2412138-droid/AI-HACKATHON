@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raw API Response Viewer</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .test-section {
+            background: #252526;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #3e3e42;
+        }
+        h2 {
+            color: #4ec9b0;
+            margin-top: 0;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+        .response {
+            margin-top: 15px;
+            padding: 15px;
+            background: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error { color: #f48771; }
+        .success { color: #4ec9b0; }
+        .loading { color: #dcdcaa; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Raw API Response Viewer</h1>
+    
+    <div class="test-section">
+        <h2>Test: sync-user.php (Register)</h2>
+        <button onclick="testSyncUser()">Test Register</button>
+        <div class="response" id="sync-response"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test: verify-token.php</h2>
+        <button onclick="testVerifyToken()">Test Verify</button>
+        <div class="response" id="verify-response"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://bkuteam.site/php/api';
+
+        async function testSyncUser() {
+            const responseEl = document.getElementById('sync-response');
+            responseEl.className = 'response loading';
+            responseEl.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/sync-user.php`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        idToken: 'test_token_123',
+                        user: {
+                            uid: 'test_uid_' + Date.now(),
+                            email: 'test@victoria.com',
+                            displayName: 'Test User',
+                            photoURL: 'https://via.placeholder.com/150',
+                            emailVerified: true,
+                            provider: 'password'
+                        }
+                    })
+                });
+
+                // Get raw text first
+                const text = await response.text();
+                
+                responseEl.textContent = `Status: ${response.status} ${response.statusText}\n\n`;
+                responseEl.textContent += `Headers:\n${JSON.stringify(Object.fromEntries(response.headers), null, 2)}\n\n`;
+                responseEl.textContent += `Raw Response:\n${text}`;
+                
+                // Try to parse as JSON
+                try {
+                    const json = JSON.parse(text);
+                    responseEl.className = 'response success';
+                    responseEl.textContent += `\n\nParsed JSON:\n${JSON.stringify(json, null, 2)}`;
+                } catch (e) {
+                    responseEl.className = 'response error';
+                    responseEl.textContent += `\n\nJSON Parse Error: ${e.message}`;
+                }
+            } catch (error) {
+                responseEl.className = 'response error';
+                responseEl.textContent = `Network Error: ${error.message}`;
+            }
+        }
+
+        async function testVerifyToken() {
+            const responseEl = document.getElementById('verify-response');
+            responseEl.className = 'response loading';
+            responseEl.textContent = 'Loading...';
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/verify-token.php`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        idToken: 'test_token_123'
+                    })
+                });
+
+                const text = await response.text();
+                
+                responseEl.textContent = `Status: ${response.status} ${response.statusText}\n\n`;
+                responseEl.textContent += `Raw Response:\n${text}`;
+                
+                try {
+                    const json = JSON.parse(text);
+                    responseEl.className = 'response success';
+                    responseEl.textContent += `\n\nParsed JSON:\n${JSON.stringify(json, null, 2)}`;
+                } catch (e) {
+                    responseEl.className = 'response error';
+                    responseEl.textContent += `\n\nJSON Parse Error: ${e.message}`;
+                }
+            } catch (error) {
+                responseEl.className = 'response error';
+                responseEl.textContent = `Network Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
