@@ -92,6 +92,9 @@
         import { getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
         
+        // Import MySQL sync utility
+        import { syncUserToMySQL, logActivity } from '../../js/mysql-api-client.js';
+        
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyA8zc27rx6YIJoyoXyf7dugS-zCjazE6lU",
@@ -127,6 +130,16 @@
                 if (error.code === 'permission-denied') {
                     console.info('💡 Setup Firestore: https://console.firebase.google.com');
                 }
+            }
+            
+            // Sync to MySQL (non-blocking)
+            try {
+                const idToken = await user.getIdToken();
+                await syncUserToMySQL(user, idToken);
+                await logActivity(user.uid, 'login', { source: 'web' });
+                console.log('✅ User synced to MySQL');
+            } catch (error) {
+                console.warn('⚠️ MySQL sync failed (app works without it):', error.message);
             }
         }
         
