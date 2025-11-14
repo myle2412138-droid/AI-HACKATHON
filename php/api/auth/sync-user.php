@@ -7,9 +7,10 @@
  * Body: { idToken, user: { uid, email, displayName, photoURL, emailVerified, provider } }
  */
 
-require_once '../../config/database.php';
-require_once '../../helpers/response.php';
-require_once '../../helpers/validator.php';
+// Use absolute paths
+require_once dirname(__DIR__, 2) . '/config/database.php';
+require_once dirname(__DIR__, 2) . '/helpers/response.php';
+require_once dirname(__DIR__, 2) . '/helpers/validator.php';
 
 // Set headers
 setJSONHeaders();

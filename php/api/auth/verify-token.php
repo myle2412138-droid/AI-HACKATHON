@@ -1,15 +1,16 @@
 <?php
 /**
  * Victoria AI - Verify Firebase Token
- * Verifies Firebase ID token and returns user data
+ * Verifies Firebase ID token via Firebase REST API
  * 
  * Endpoint: POST /php/api/auth/verify-token.php
  * Body: { idToken }
  */
 
-require_once '../../config/database.php';
-require_once '../../helpers/response.php';
-require_once '../../helpers/validator.php';
+// Use absolute paths
+require_once dirname(__DIR__, 2) . '/config/database.php';
+require_once dirname(__DIR__, 2) . '/helpers/response.php';
+require_once dirname(__DIR__, 2) . '/helpers/validator.php';
 
 setJSONHeaders();
 

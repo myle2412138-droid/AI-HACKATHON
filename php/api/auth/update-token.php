@@ -7,9 +7,9 @@
  * Body: { firebaseUid, accessToken, refreshToken, expiresIn, scope }
  */
 
-require_once '../../config/database.php';
-require_once '../../helpers/response.php';
-require_once '../../helpers/validator.php';
+require_once dirname(__DIR__, 2) . '/config/database.php';
+require_once dirname(__DIR__, 2) . '/helpers/response.php';
+require_once dirname(__DIR__, 2) . '/helpers/validator.php';
 
 setJSONHeaders();
 

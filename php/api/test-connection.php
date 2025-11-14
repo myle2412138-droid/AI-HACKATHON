@@ -6,8 +6,8 @@
  * Endpoint: GET /php/api/test-connection.php
  */
 
-require_once '../config/database.php';
-require_once '../helpers/response.php';
+require_once dirname(__DIR__) . '/config/database.php';
+require_once dirname(__DIR__) . '/helpers/response.php';
 
 setJSONHeaders();
 
