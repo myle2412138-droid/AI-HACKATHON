@@ -13,26 +13,41 @@ class PapersAPI {
         $url = "https://api.semanticscholar.org/graph/v1/paper/search";
         $params = http_build_query([
             'query' => $query,
-            'limit' => $limit,
+            'limit' => min($limit, 100), // Max 100 per request
             'fields' => 'paperId,title,abstract,authors,year,citationCount,url,openAccessPdf,publicationDate,venue'
         ]);
         
         $ch = curl_init("$url?$params");
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => ['Accept: application/json']
+            CURLOPT_HTTPHEADER => ['Accept: application/json'],
+            CURLOPT_TIMEOUT => 10, // 10 second timeout
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false // For development
         ]);
         
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
         
+        if ($curlError) {
+            error_log('CURL error: ' . $curlError);
+            throw new Exception('Network error: ' . $curlError);
+        }
+        
         if ($httpCode !== 200) {
-            error_log('Semantic Scholar API error: ' . $response);
-            return [];
+            error_log('Semantic Scholar API error (' . $httpCode . '): ' . $response);
+            throw new Exception('API returned status ' . $httpCode);
         }
         
         $data = json_decode($response, true);
+        if (!$data || !isset($data['data'])) {
+            error_log('Invalid JSON response: ' . $response);
+            throw new Exception('Invalid API response');
+        }
+        
         $papers = $data['data'] ?? [];
         
         // Format papers
@@ -41,11 +56,11 @@ class PapersAPI {
                 'id' => $paper['paperId'],
                 'source' => 'semantic_scholar',
                 'title' => $paper['title'],
-                'abstract' => $paper['abstract'] ?? '',
+                'abstract' => $paper['abstract'] ?? 'No abstract available',
                 'authors' => implode(', ', array_column($paper['authors'] ?? [], 'name')),
-                'year' => $paper['year'],
+                'year' => $paper['year'] ?? 'N/A',
                 'citations' => $paper['citationCount'] ?? 0,
-                'url' => $paper['url'] ?? '',
+                'url' => $paper['url'] ?? 'https://www.semanticscholar.org/paper/' . $paper['paperId'],
                 'pdf_url' => $paper['openAccessPdf']['url'] ?? null,
                 'venue' => $paper['venue'] ?? 'Unknown',
                 'thumbnail' => $this->generateThumbnail($paper),

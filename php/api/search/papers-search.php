@@ -21,36 +21,68 @@ if (empty($query)) {
 }
 
 try {
+    // Initialize API
+    if (!class_exists('PapersAPI')) {
+        throw new Exception('PapersAPI class not found');
+    }
+    
     $papersAPI = new PapersAPI();
     
-    // Search from multiple sources
-    $semanticScholar = $papersAPI->searchSemanticScholar($query, $limit);
-    $arxiv = $papersAPI->searchArXiv($query, 10);
+    // Search from multiple sources in parallel
+    error_log("Searching for: $query");
     
-    // Merge and rank
-    $papers = $papersAPI->mergeAndRank([
-        'semantic_scholar' => $semanticScholar,
-        'arxiv' => $arxiv
-    ], $query);
+    $papers = [];
     
-    // Limit results
+    // Try Semantic Scholar first (most reliable)
+    try {
+        $semanticScholar = $papersAPI->searchSemanticScholar($query, $limit);
+        error_log("Semantic Scholar found: " . count($semanticScholar) . " papers");
+        $papers = array_merge($papers, $semanticScholar);
+    } catch (Exception $e) {
+        error_log("Semantic Scholar error: " . $e->getMessage());
+    }
+    
+    // Try arXiv as supplementary source
+    try {
+        $arxiv = $papersAPI->searchArXiv($query, min(10, $limit));
+        error_log("arXiv found: " . count($arxiv) . " papers");
+        $papers = array_merge($papers, $arxiv);
+    } catch (Exception $e) {
+        error_log("arXiv error: " . $e->getMessage());
+    }
+    
+    // Merge and rank all results
+    if (count($papers) > 0) {
+        $papers = $papersAPI->mergeAndRank([
+            'combined' => $papers
+        ], $query);
+    }
+    
+    // Limit final results
     $papers = array_slice($papers, 0, $limit);
+    
+    error_log("Total papers returned: " . count($papers));
     
     echo json_encode([
         'success' => true,
         'query' => $query,
         'results' => $papers,
         'total' => count($papers),
-        'sources' => ['semantic_scholar', 'arxiv']
+        'sources' => array_unique(array_column($papers, 'source'))
     ], JSON_UNESCAPED_UNICODE);
     
 } catch (Exception $e) {
     error_log('Papers search error: ' . $e->getMessage());
+    error_log('Stack trace: ' . $e->getTraceAsString());
+    
+    // Return error with details for debugging
     http_response_code(500);
     echo json_encode([
-        'success' => false, 
-        'message' => 'Search error',
-        'error' => $e->getMessage()
-    ]);
+        'success' => false,
+        'query' => $query,
+        'message' => 'Search failed: ' . $e->getMessage(),
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString()
+    ], JSON_UNESCAPED_UNICODE);
 }
 

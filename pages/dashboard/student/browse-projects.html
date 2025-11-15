@@ -647,18 +647,45 @@
                 loadingText.textContent = '🤖 AI đang tìm kiếm và phân tích...';
                 
                 // Log search
-                await tracker.logSearch(query, [], 'papers');
+                try {
+                    await tracker.logSearch(query, [], 'papers');
+                } catch (error) {
+                    console.warn('⚠️ Tracking failed (non-critical):', error.message);
+                    // Continue anyway - tracking is not critical
+                }
                 
                 // Step 1: AI understand query
                 loadingText.textContent = '🧠 AI đang hiểu câu hỏi của bạn...';
                 const understanding = await megallm.understandQuery(query);
                 console.log('Query understanding:', understanding);
                 
-                // Step 2: Search papers
-                loadingText.textContent = '📚 Đang tìm bài báo khoa học...';
-                const papersResponse = await fetch(`https://bkuteam.site/php/api/search/papers-search.php?q=${encodeURIComponent(query)}&limit=20`);
-                const papersData = await papersResponse.json();
-                const papers = papersData.results || [];
+                // Step 2: Search papers from REAL API
+                loadingText.textContent = '📚 Đang tìm bài báo khoa học từ Semantic Scholar...';
+                let papers = [];
+                
+                try {
+                    const apiUrl = 'https://bkuteam.site/php/api/search/papers-search.php';
+                    const papersResponse = await fetch(`${apiUrl}?q=${encodeURIComponent(query)}&limit=20`);
+                    
+                    if (!papersResponse.ok) {
+                        throw new Error(`API returned ${papersResponse.status}`);
+                    }
+                    
+                    const papersData = await papersResponse.json();
+                    
+                    if (papersData.success) {
+                        papers = papersData.results || [];
+                        console.log(`✅ Found ${papers.length} papers from ${papersData.sources?.join(', ')}`);
+                    } else {
+                        console.error('❌ API error:', papersData.message);
+                        throw new Error(papersData.message || 'Search failed');
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Papers search failed:', error);
+                    showToast('Không tìm được bài báo. Vui lòng thử lại sau.', 'error');
+                    // Continue with empty papers array
+                }
                 
                 // Step 3: Search projects from database
                 loadingText.textContent = '💼 Đang tìm đề tài tuyển thành viên...';

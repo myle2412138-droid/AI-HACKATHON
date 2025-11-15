@@ -27,6 +27,19 @@ if (!$input || !isset($input['user_id']) || !isset($input['query'])) {
 try {
     $db = getDBConnection();
     
+    // Check if table exists
+    $tableCheck = $db->query("SHOW TABLES LIKE 'search_logs'");
+    if ($tableCheck->rowCount() === 0) {
+        error_log('Table search_logs does not exist');
+        http_response_code(200); // Return success anyway to not block frontend
+        echo json_encode([
+            'success' => true,
+            'message' => 'Tracking disabled (table not found)',
+            'data' => ['search_id' => 0]
+        ]);
+        exit;
+    }
+    
     $stmt = $db->prepare("
         INSERT INTO search_logs (user_id, query, search_type, results_count, session_id, ip_address)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -51,7 +64,12 @@ try {
     
 } catch (Exception $e) {
     error_log('Log search error: ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Database error']);
+    // Return success anyway to not block frontend
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'message' => 'Tracking failed but continuing',
+        'error' => $e->getMessage()
+    ]);
 }
 
