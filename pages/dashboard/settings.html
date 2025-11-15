@@ -284,6 +284,10 @@
         // Get auth instance
         const auth = getAuthInstance();
         
+        // API Base URL - PHẢI KHAI BÁO TRƯỚC
+        const API_BASE = 'https://bkuteam.site/php/api/profile';
+        const USE_V3 = true; // Đổi thành false để dùng version cũ
+        
         let currentUser = null;
         let currentRole = null;
         
@@ -302,11 +306,6 @@
             console.error('❌ Auth failed:', error);
             // Auto redirect to signin
         }
-        
-        // API Base URL - Đổi URL này nếu cần
-        // Thử version 3 nếu version cũ lỗi
-        const API_BASE = 'https://bkuteam.site/php/api/profile';
-        const USE_V3 = true; // Đổi thành false để dùng version cũ
         
         // Load profile data
         async function loadProfile(user) {
