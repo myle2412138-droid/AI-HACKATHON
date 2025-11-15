@@ -247,15 +247,54 @@ function showAuthLoading(show) {
 /**
  * Redirect after successful login
  */
-export function handlePostLogin() {
-    // Check if there's a return URL
-    const returnUrl = sessionStorage.getItem('return_url');
-    
-    if (returnUrl) {
-        sessionStorage.removeItem('return_url');
-        window.location.href = returnUrl;
-    } else {
-        // Default redirect to dashboard
+export async function handlePostLogin() {
+    try {
+        const user = auth.currentUser;
+        if (!user) {
+            window.location.href = '/pages/dashboard/index.html';
+            return;
+        }
+
+        // Get user profile to check role
+        const token = await user.getIdToken();
+        const response = await fetch('https://bkuteam.site/php/api/profile/get-profile.php', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data.user.role) {
+                const role = result.data.user.role;
+                
+                // Check if there's a return URL
+                const returnUrl = sessionStorage.getItem('return_url');
+                
+                if (returnUrl) {
+                    sessionStorage.removeItem('return_url');
+                    window.location.href = returnUrl;
+                    return;
+                }
+
+                // Redirect based on role
+                if (role === 'student') {
+                    window.location.href = '/pages/dashboard/student/index.html';
+                } else if (role === 'lecturer') {
+                    window.location.href = '/pages/dashboard/lecturer/index.html';
+                } else {
+                    window.location.href = '/pages/dashboard/index.html';
+                }
+                return;
+            }
+        }
+
+        // Fallback: redirect to main dashboard
+        window.location.href = '/pages/dashboard/index.html';
+        
+    } catch (error) {
+        console.error('❌ Post-login redirect error:', error);
         window.location.href = '/pages/dashboard/index.html';
     }
 }

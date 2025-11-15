@@ -485,9 +485,16 @@
                 console.log('Response data:', result);
                 
                 if (result.success) {
-                    showToast(result.data.message || 'Cập nhật thành công!', 'success');
+                    showToast(result.data.message || 'Cập nhật thành công! Đang chuyển hướng...', 'success');
                     setTimeout(() => {
-                        window.location.href = 'index.html';
+                        // Redirect to appropriate dashboard based on role
+                        if (data.role === 'student') {
+                            window.location.href = './student/index.html';
+                        } else if (data.role === 'lecturer') {
+                            window.location.href = './lecturer/index.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
                     }, 1500);
                 } else {
                     showToast('Lỗi: ' + result.message, 'error');

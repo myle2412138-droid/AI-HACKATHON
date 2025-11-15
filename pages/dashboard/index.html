@@ -240,28 +240,35 @@
         async function checkRoleAndRedirect(user) {
             try {
                 const token = await user.getIdToken();
-                const response = await fetch('https://bkuteam.site/php/api/profile/check-complete.php', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                const response = await fetch('https://bkuteam.site/php/api/profile/get-profile.php', {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
                 
                 const result = await response.json();
                 
-                if (result.success && result.data.role) {
-                    const role = result.data.role;
+                if (result.success && result.data.user.role) {
+                    const role = result.data.user.role;
                     console.log('👤 User role:', role);
                     
                     // Redirect về dashboard theo role
                     if (role === 'lecturer') {
                         console.log('🔀 Redirecting to Lecturer Dashboard...');
                         window.location.href = 'lecturer/index.html';
+                        return true;
                     } else if (role === 'student') {
                         console.log('🔀 Redirecting to Student Dashboard...');
                         window.location.href = 'student/index.html';
+                        return true;
                     }
                 }
+                return false;
             } catch (error) {
                 console.error('Check role error:', error);
                 // Nếu lỗi, tiếp tục load page này (fallback)
+                return false;
             }
         }
         
