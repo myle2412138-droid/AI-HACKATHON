@@ -307,11 +307,14 @@
             }
         });
         
+        // API Base URL - Đổi URL này nếu cần
+        const API_BASE = 'http://bkuteam.site/php/api/profile';
+        
         // Load profile data
         async function loadProfile(user) {
             try {
                 const token = await user.getIdToken();
-                const response = await fetch('../../php/api/profile/get-profile.php', {
+                const response = await fetch(`${API_BASE}/get-profile.php`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -450,7 +453,11 @@
         async function updateProfile(data) {
             try {
                 const token = await currentUser.getIdToken();
-                const response = await fetch('../../php/api/profile/update-profile.php', {
+                
+                console.log('Sending data:', data);
+                console.log('Token:', token.substring(0, 20) + '...');
+                
+                const response = await fetch(`${API_BASE}/update-profile.php`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -459,7 +466,19 @@
                     body: JSON.stringify(data)
                 });
                 
+                console.log('Response status:', response.status);
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    showToast('Server trả về lỗi. Check console (F12)', 'error');
+                    return;
+                }
+                
                 const result = await response.json();
+                console.log('Response data:', result);
                 
                 if (result.success) {
                     showToast(result.data.message || 'Cập nhật thành công!', 'success');
@@ -471,7 +490,7 @@
                 }
             } catch (error) {
                 console.error('Update error:', error);
-                showToast('Lỗi kết nối server', 'error');
+                showToast('Lỗi: ' + error.message, 'error');
             }
         }
         

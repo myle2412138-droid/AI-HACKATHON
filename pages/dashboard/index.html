@@ -417,25 +417,42 @@
         async function checkProfileCompleteness(user) {
             try {
                 const token = await user.getIdToken();
-                const response = await fetch('../../php/api/profile/check-complete.php', {
+                const API_BASE = 'http://bkuteam.site/php/api/profile';
+                
+                const response = await fetch(`${API_BASE}/check-complete.php`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
                 
-                const result = await response.json();
+                console.log('Check complete response:', response.status);
                 
-                if (result.success && !result.data.complete) {
-                    // Show alert banner
-                    const alertEl = document.getElementById('profileAlert');
-                    const messageEl = document.getElementById('alertMessage');
-                    
-                    if (result.data.missing_fields && result.data.missing_fields.length > 0) {
-                        const fields = result.data.missing_fields.map(f => f.label || f).join(', ');
-                        messageEl.textContent = `Còn thiếu: ${fields}. Vui lòng cập nhật để sử dụng đầy đủ tính năng.`;
+                if (!response.ok) {
+                    console.warn('Check complete API failed:', response.status);
+                    return;
+                }
+                
+                const result = await response.json();
+                console.log('Profile completeness:', result);
+                
+                if (result.success) {
+                    if (!result.data.complete) {
+                        // Show alert banner
+                        const alertEl = document.getElementById('profileAlert');
+                        const messageEl = document.getElementById('alertMessage');
+                        
+                        if (result.data.missing_fields && result.data.missing_fields.length > 0) {
+                            const fields = result.data.missing_fields.map(f => f.label || f).join(', ');
+                            messageEl.textContent = `Còn thiếu: ${fields}. Vui lòng cập nhật để sử dụng đầy đủ tính năng.`;
+                        } else if (!result.data.role) {
+                            messageEl.textContent = 'Vui lòng chọn vai trò (Sinh viên/Giảng viên) và cập nhật thông tin.';
+                        }
+                        
+                        alertEl.style.display = 'flex';
+                        console.log('✅ Banner displayed');
+                    } else {
+                        console.log('✅ Profile is complete - no banner needed');
                     }
-                    
-                    alertEl.style.display = 'flex';
                 }
             } catch (error) {
                 console.error('Check profile error:', error);
