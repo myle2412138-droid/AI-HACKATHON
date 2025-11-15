@@ -73,42 +73,75 @@ class PapersAPI {
      * Search arXiv
      */
     public function searchArXiv($query, $maxResults = 20) {
-        $url = "http://export.arxiv.org/api/query";
-        $params = http_build_query([
-            'search_query' => "all:$query",
-            'start' => 0,
-            'max_results' => $maxResults,
-            'sortBy' => 'relevance',
-            'sortOrder' => 'descending'
-        ]);
-        
-        $response = @file_get_contents("$url?$params");
-        
-        if (!$response) {
+        try {
+            $url = "http://export.arxiv.org/api/query";
+            $params = http_build_query([
+                'search_query' => "all:$query",
+                'start' => 0,
+                'max_results' => $maxResults,
+                'sortBy' => 'relevance',
+                'sortOrder' => 'descending'
+            ]);
+            
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => 10,
+                    'ignore_errors' => true
+                ]
+            ]);
+            
+            $response = @file_get_contents("$url?$params", false, $context);
+            
+            if (!$response) {
+                error_log('arXiv API: No response');
+                return [];
+            }
+            
+            // Parse XML
+            libxml_use_internal_errors(true);
+            $xml = simplexml_load_string($response);
+            
+            if (!$xml) {
+                error_log('arXiv API: XML parse error');
+                return [];
+            }
+            
+            $papers = [];
+            
+            if (!isset($xml->entry)) {
+                return [];
+            }
+            
+            foreach ($xml->entry as $entry) {
+                $authors = [];
+                if (isset($entry->author)) {
+                    foreach ($entry->author as $author) {
+                        if (isset($author->name)) {
+                            $authors[] = (string)$author->name;
+                        }
+                    }
+                }
+                
+                $papers[] = [
+                    'id' => (string)$entry->id,
+                    'source' => 'arxiv',
+                    'title' => (string)$entry->title,
+                    'abstract' => (string)$entry->summary,
+                    'authors' => implode(', ', $authors),
+                    'year' => substr((string)$entry->published, 0, 4),
+                    'citations' => 0,
+                    'url' => (string)$entry->id,
+                    'pdf_url' => (string)$entry->id . '.pdf',
+                    'thumbnail' => '/assets/arxiv-default.png',
+                    'published_date' => (string)$entry->published
+                ];
+            }
+            
+            return $papers;
+        } catch (Exception $e) {
+            error_log('arXiv API exception: ' . $e->getMessage());
             return [];
         }
-        
-        // Parse XML
-        $xml = simplexml_load_string($response);
-        $papers = [];
-        
-        foreach ($xml->entry as $entry) {
-            $papers[] = [
-                'id' => (string)$entry->id,
-                'source' => 'arxiv',
-                'title' => (string)$entry->title,
-                'abstract' => (string)$entry->summary,
-                'authors' => implode(', ', array_map(fn($a) => (string)$a->name, iterator_to_array($entry->author))),
-                'year' => substr((string)$entry->published, 0, 4),
-                'citations' => 0,
-                'url' => (string)$entry->id,
-                'pdf_url' => (string)$entry->id . '.pdf',
-                'thumbnail' => '/assets/arxiv-default.png',
-                'published_date' => (string)$entry->published
-            ];
-        }
-        
-        return $papers;
     }
     
     /**

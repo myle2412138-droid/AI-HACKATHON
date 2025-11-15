@@ -14,8 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once __DIR__ . '/../../config/database.php';
-
 $input = json_decode(file_get_contents('php://input'), true);
 
 if (!$input || !isset($input['user_id']) || !isset($input['query'])) {
@@ -25,6 +23,7 @@ if (!$input || !isset($input['user_id']) || !isset($input['query'])) {
 }
 
 try {
+    require_once __DIR__ . '/../../config/database.php';
     $db = getDBConnection();
     
     // Check if table exists

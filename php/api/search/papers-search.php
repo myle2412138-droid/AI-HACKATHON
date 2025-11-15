@@ -21,6 +21,11 @@ if (empty($query)) {
 }
 
 try {
+    // Verify service file exists
+    if (!file_exists(__DIR__ . '/../../services/papers-api.php')) {
+        throw new Exception('PapersAPI service file not found');
+    }
+    
     // Initialize API
     if (!class_exists('PapersAPI')) {
         throw new Exception('PapersAPI class not found');
@@ -32,6 +37,7 @@ try {
     error_log("Searching for: $query");
     
     $papers = [];
+    $errors = [];
     
     // Try Semantic Scholar first (most reliable)
     try {
@@ -39,7 +45,9 @@ try {
         error_log("Semantic Scholar found: " . count($semanticScholar) . " papers");
         $papers = array_merge($papers, $semanticScholar);
     } catch (Exception $e) {
-        error_log("Semantic Scholar error: " . $e->getMessage());
+        $errorMsg = "Semantic Scholar error: " . $e->getMessage();
+        error_log($errorMsg);
+        $errors[] = $errorMsg;
     }
     
     // Try arXiv as supplementary source
@@ -48,7 +56,22 @@ try {
         error_log("arXiv found: " . count($arxiv) . " papers");
         $papers = array_merge($papers, $arxiv);
     } catch (Exception $e) {
-        error_log("arXiv error: " . $e->getMessage());
+        $errorMsg = "arXiv error: " . $e->getMessage();
+        error_log($errorMsg);
+        $errors[] = $errorMsg;
+    }
+    
+    // If no papers found from any source, return empty results
+    if (empty($papers)) {
+        echo json_encode([
+            'success' => true,
+            'query' => $query,
+            'results' => [],
+            'total' => 0,
+            'message' => 'No papers found',
+            'errors' => $errors
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
     }
     
     // Merge and rank all results
@@ -75,14 +98,14 @@ try {
     error_log('Papers search error: ' . $e->getMessage());
     error_log('Stack trace: ' . $e->getTraceAsString());
     
-    // Return error with details for debugging
-    http_response_code(500);
+    // Return graceful error (200 status to not break frontend)
+    http_response_code(200);
     echo json_encode([
-        'success' => false,
+        'success' => true,
         'query' => $query,
-        'message' => 'Search failed: ' . $e->getMessage(),
-        'error' => $e->getMessage(),
-        'trace' => $e->getTraceAsString()
+        'results' => [],
+        'total' => 0,
+        'message' => 'Search temporarily unavailable: ' . $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
 }
 
