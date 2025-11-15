@@ -417,7 +417,7 @@
         async function checkProfileCompleteness(user) {
             try {
                 const token = await user.getIdToken();
-                const API_BASE = 'http://bkuteam.site/php/api/profile';
+                const API_BASE = 'https://bkuteam.site/php/api/profile';
                 
                 const response = await fetch(`${API_BASE}/check-complete.php`, {
                     headers: {
