@@ -61,16 +61,7 @@ try {
         exit;
     }
     
-    // Verify service file exists
-    $serviceFile = __DIR__ . '/../../services/papers-api.php';
-    if (!file_exists($serviceFile)) {
-        throw new Exception('PapersAPI service file not found');
-    }
-    
-    // Try to load the service
-    require_once $serviceFile;
-    
-    // Initialize API
+    // Initialize API (service file already loaded above)
     if (!class_exists('PapersAPI')) {
         throw new Exception('PapersAPI class not found');
     }
