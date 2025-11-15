@@ -106,35 +106,79 @@ try {
     
     // UPDATE STUDENT
     if ($role === 'student') {
-        // Check exists
-        $stmt = $db->prepare("SELECT id FROM student_profiles WHERE user_id = ?");
+        // Check if profile exists
+        $stmt = $db->prepare("SELECT id, student_id FROM student_profiles WHERE user_id = ?");
         $stmt->execute([$userId]);
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($stmt->fetch()) {
-            // UPDATE
-            $sql = "UPDATE student_profiles SET 
-                    student_id = ?, university = ?, major = ?, 
-                    phone = ?, bio = ?, research_interests = ?
-                    WHERE user_id = ?";
-            $stmt = $db->prepare($sql);
-            $stmt->execute([
-                $data['student_id'] ?? '',
-                $data['university'] ?? '',
-                $data['major'] ?? '',
-                $data['phone'] ?? '',
-                $data['bio'] ?? '',
-                $data['research_interests'] ?? '',
-                $userId
-            ]);
+        if ($existing) {
+            // UPDATE - CHỈ update student_id nếu KHÁC với hiện tại
+            $updateStudentId = false;
+            $newStudentId = $data['student_id'] ?? '';
+            
+            // Nếu student_id mới khác với cũ, check xem có bị duplicate không
+            if ($newStudentId && $newStudentId !== $existing['student_id']) {
+                $stmt = $db->prepare("SELECT id FROM student_profiles WHERE student_id = ? AND user_id != ?");
+                $stmt->execute([$newStudentId, $userId]);
+                
+                if ($stmt->fetch()) {
+                    respond(false, "MSSV '$newStudentId' đã được sử dụng bởi sinh viên khác!");
+                }
+                $updateStudentId = true;
+            }
+            
+            // Build UPDATE query
+            if ($updateStudentId) {
+                $sql = "UPDATE student_profiles SET 
+                        student_id = ?, university = ?, major = ?, 
+                        phone = ?, bio = ?, research_interests = ?
+                        WHERE user_id = ?";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([
+                    $newStudentId,
+                    $data['university'] ?? '',
+                    $data['major'] ?? '',
+                    $data['phone'] ?? '',
+                    $data['bio'] ?? '',
+                    $data['research_interests'] ?? '',
+                    $userId
+                ]);
+            } else {
+                // Không update student_id, giữ nguyên
+                $sql = "UPDATE student_profiles SET 
+                        university = ?, major = ?, 
+                        phone = ?, bio = ?, research_interests = ?
+                        WHERE user_id = ?";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([
+                    $data['university'] ?? '',
+                    $data['major'] ?? '',
+                    $data['phone'] ?? '',
+                    $data['bio'] ?? '',
+                    $data['research_interests'] ?? '',
+                    $userId
+                ]);
+            }
         } else {
-            // INSERT
+            // INSERT - Check student_id không trùng
+            $newStudentId = $data['student_id'] ?? '';
+            
+            if ($newStudentId) {
+                $stmt = $db->prepare("SELECT id FROM student_profiles WHERE student_id = ?");
+                $stmt->execute([$newStudentId]);
+                
+                if ($stmt->fetch()) {
+                    respond(false, "MSSV '$newStudentId' đã được sử dụng bởi sinh viên khác!");
+                }
+            }
+            
             $sql = "INSERT INTO student_profiles 
                     (user_id, student_id, university, major, phone, bio, research_interests) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $db->prepare($sql);
             $stmt->execute([
                 $userId,
-                $data['student_id'] ?? '',
+                $newStudentId,
                 $data['university'] ?? '',
                 $data['major'] ?? '',
                 $data['phone'] ?? '',
@@ -145,35 +189,78 @@ try {
     }
     // UPDATE LECTURER
     elseif ($role === 'lecturer') {
-        // Check exists
-        $stmt = $db->prepare("SELECT id FROM lecturer_profiles WHERE user_id = ?");
+        // Check if profile exists
+        $stmt = $db->prepare("SELECT id, lecturer_id FROM lecturer_profiles WHERE user_id = ?");
         $stmt->execute([$userId]);
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($stmt->fetch()) {
-            // UPDATE
-            $sql = "UPDATE lecturer_profiles SET 
-                    lecturer_id = ?, university = ?, department = ?, 
-                    degree = ?, research_interests = ?, phone = ?
-                    WHERE user_id = ?";
-            $stmt = $db->prepare($sql);
-            $stmt->execute([
-                $data['lecturer_id'] ?? '',
-                $data['university'] ?? '',
-                $data['department'] ?? '',
-                $data['degree'] ?? 'bachelor',
-                $data['research_interests'] ?? '',
-                $data['phone'] ?? '',
-                $userId
-            ]);
+        if ($existing) {
+            // UPDATE - Check lecturer_id duplicate
+            $updateLecturerId = false;
+            $newLecturerId = $data['lecturer_id'] ?? '';
+            
+            if ($newLecturerId && $newLecturerId !== $existing['lecturer_id']) {
+                $stmt = $db->prepare("SELECT id FROM lecturer_profiles WHERE lecturer_id = ? AND user_id != ?");
+                $stmt->execute([$newLecturerId, $userId]);
+                
+                if ($stmt->fetch()) {
+                    respond(false, "Mã giảng viên '$newLecturerId' đã được sử dụng!");
+                }
+                $updateLecturerId = true;
+            }
+            
+            // Build UPDATE
+            if ($updateLecturerId) {
+                $sql = "UPDATE lecturer_profiles SET 
+                        lecturer_id = ?, university = ?, department = ?, 
+                        degree = ?, research_interests = ?, phone = ?
+                        WHERE user_id = ?";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([
+                    $newLecturerId,
+                    $data['university'] ?? '',
+                    $data['department'] ?? '',
+                    $data['degree'] ?? 'bachelor',
+                    $data['research_interests'] ?? '',
+                    $data['phone'] ?? '',
+                    $userId
+                ]);
+            } else {
+                // Không update lecturer_id
+                $sql = "UPDATE lecturer_profiles SET 
+                        university = ?, department = ?, 
+                        degree = ?, research_interests = ?, phone = ?
+                        WHERE user_id = ?";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([
+                    $data['university'] ?? '',
+                    $data['department'] ?? '',
+                    $data['degree'] ?? 'bachelor',
+                    $data['research_interests'] ?? '',
+                    $data['phone'] ?? '',
+                    $userId
+                ]);
+            }
         } else {
-            // INSERT
+            // INSERT - Check lecturer_id không trùng
+            $newLecturerId = $data['lecturer_id'] ?? '';
+            
+            if ($newLecturerId) {
+                $stmt = $db->prepare("SELECT id FROM lecturer_profiles WHERE lecturer_id = ?");
+                $stmt->execute([$newLecturerId]);
+                
+                if ($stmt->fetch()) {
+                    respond(false, "Mã giảng viên '$newLecturerId' đã được sử dụng!");
+                }
+            }
+            
             $sql = "INSERT INTO lecturer_profiles 
                     (user_id, lecturer_id, university, department, degree, research_interests, phone) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $db->prepare($sql);
             $stmt->execute([
                 $userId,
-                $data['lecturer_id'] ?? '',
+                $newLecturerId,
                 $data['university'] ?? '',
                 $data['department'] ?? '',
                 $data['degree'] ?? 'bachelor',
