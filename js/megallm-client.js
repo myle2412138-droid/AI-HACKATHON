@@ -87,6 +87,20 @@ class MegaLLMClient {
             .filter(w => w.length > 3)
             .slice(0, 5);
         
+        // Detect if Vietnamese
+        const isVietnamese = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/i.test(query);
+        
+        // Return formatted text instead of JSON for better display
+        if (isVietnamese) {
+            return `Đang phân tích chủ đề "${query}"\n\n` +
+                   `Từ khóa chính: ${keywords.join(', ')}\n\n` +
+                   `💡 Gợi ý:\n` +
+                   `- Tìm papers gần đây (2020-2024)\n` +
+                   `- Xem papers có citations cao\n` +
+                   `- Đọc review papers để hiểu tổng quan\n\n` +
+                   `⚠️ Lưu ý: AI đang ở chế độ giới hạn. Nâng cấp để có phân tích sâu hơn.`;
+        }
+        
         return JSON.stringify({
             terms: keywords,
             field: 'General',
@@ -126,21 +140,38 @@ Return JSON format:
         
         try {
             const content = response.choices[0].message.content;
-            const parsed = JSON.parse(content);
             
-            // If fallback mode, add notice
+            // If fallback mode, use simple extraction
             if (response._fallback) {
                 console.warn('⚠️ Using fallback query understanding');
+                const keywords = query.toLowerCase()
+                    .split(/[,;.\s]+/)
+                    .filter(w => w.length > 3)
+                    .slice(0, 10);
+                
+                return {
+                    terms: keywords,
+                    field: 'Computer Science',
+                    intent: `Tìm kiếm papers về: ${query}`,
+                    suggested_queries: keywords.slice(0, 5).map(k => `${k} research`)
+                };
             }
             
+            const parsed = JSON.parse(content);
             return parsed;
         } catch (e) {
             console.error('Parse error:', e);
+            // Fallback to simple extraction
+            const keywords = query.toLowerCase()
+                .split(/[,;.\s]+/)
+                .filter(w => w.length > 3)
+                .slice(0, 10);
+            
             return {
-                terms: [query],
+                terms: keywords,
                 field: 'General',
-                intent: query,
-                suggested_queries: [query]
+                intent: `Tìm kiếm: ${query}`,
+                suggested_queries: keywords.slice(0, 5)
             };
         }
     }
@@ -180,7 +211,25 @@ Return in Vietnamese, be specific and actionable.`
             maxTokens: 800
         });
         
-        return response.choices[0].message.content;
+        const content = response.choices[0].message.content;
+        
+        // If fallback, provide helpful Vietnamese text
+        if (response._fallback) {
+            const topPaper = papers[0];
+            return `📊 **Phân tích chủ đề: "${query}"**\n\n` +
+                   `🔍 **Tình hình nghiên cứu:**\n` +
+                   `Tìm thấy ${papers.length} papers liên quan. ` +
+                   (topPaper ? `Paper nổi bật nhất: "${topPaper.title}" (${topPaper.citations} citations).` : '') +
+                   `\n\n💡 **Gợi ý:**\n` +
+                   `• Đọc top 5 papers có citations cao nhất\n` +
+                   `• Tìm review papers để hiểu tổng quan\n` +
+                   `• Xem papers gần đây (2023-2024) để biết xu hướng\n` +
+                   `• Compare các phương pháp khác nhau\n\n` +
+                   `⚠️ **Lưu ý:**\n` +
+                   `AI đang ở chế độ giới hạn. Để có phân tích chi tiết hơn, vui lòng nâng cấp tài khoản.`;
+        }
+        
+        return content;
     }
     
     /**

@@ -908,8 +908,146 @@
         };
         
         window.savePaper = async function(paperId) {
-            await tracker.logPaperInteraction({ id: paperId }, 'save');
-            showToast('Đã lưu paper vào thư viện!', 'success');
+            // Find paper data from card
+            const allCards = document.querySelectorAll('.paper-card');
+            let paperData = null;
+            
+            for (const card of allCards) {
+                const cardActions = card.querySelector('.card-actions');
+                if (cardActions && cardActions.innerHTML.includes(paperId)) {
+                    paperData = {
+                        id: paperId,
+                        title: card.querySelector('.card-title')?.textContent || '',
+                        authors: card.querySelector('.card-authors')?.textContent?.replace('👥', '').trim() || '',
+                        year: card.querySelector('.card-year')?.textContent || '',
+                        abstract: card.querySelector('.card-abstract')?.textContent || '',
+                        source: 'semantic_scholar'
+                    };
+                    break;
+                }
+            }
+            
+            if (!paperData) {
+                showToast('❌ Không tìm thấy thông tin paper', 'error');
+                return;
+            }
+            
+            try {
+                // Get current user
+                const user = firebase.auth().currentUser;
+                if (!user) {
+                    showToast('⚠️ Vui lòng đăng nhập', 'warning');
+                    return;
+                }
+                
+                const response = await fetch('https://bkuteam.site/php/api/papers/save.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        user_id: user.uid,
+                        paper_id: paperId,
+                        paper_data: paperData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.already_saved) {
+                        showToast('ℹ️ Paper đã được lưu trước đó', 'info');
+                    } else {
+                        showToast('✅ Đã lưu paper vào thư viện!', 'success');
+                    }
+                    await tracker.logPaperInteraction({ id: paperId }, 'save');
+                } else {
+                    showToast('❌ ' + (data.message || 'Lỗi lưu paper'), 'error');
+                }
+            } catch (error) {
+                console.error('Save paper error:', error);
+                showToast('❌ Lỗi kết nối server', 'error');
+            }
+        };
+        
+        window.citePaper = function(paperId) {
+            // Find paper in current results
+            const allCards = document.querySelectorAll('.paper-card');
+            let paper = null;
+            
+            // Try to find paper data from card
+            for (const card of allCards) {
+                const title = card.querySelector('.card-title')?.textContent;
+                const authors = card.querySelector('.card-authors')?.textContent?.replace('👥', '').trim();
+                const year = card.querySelector('.card-year')?.textContent;
+                
+                if (title) {
+                    paper = { title, authors, year, id: paperId };
+                    break;
+                }
+            }
+            
+            if (!paper) {
+                showToast('Không tìm thấy thông tin paper', 'error');
+                return;
+            }
+            
+            // Generate citations
+            const apa = `${paper.authors} (${paper.year}). ${paper.title}.`;
+            const mla = `${paper.authors}. "${paper.title}." ${paper.year}.`;
+            const chicago = `${paper.authors}. "${paper.title}." ${paper.year}.`;
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 2.4rem; border-radius: 1.6rem; max-width: 600px; width: 90%;">
+                    <h3 style="font-size: 1.8rem; margin-bottom: 1.6rem; color: #1f2937;">📋 Trích Dẫn Paper</h3>
+                    
+                    <div style="margin-bottom: 1.6rem;">
+                        <label style="font-weight: 600; display: block; margin-bottom: 0.8rem; color: #1f2937;">APA:</label>
+                        <div style="background: #fafafa; padding: 1.2rem; border-radius: 0.8rem; font-size: 1.4rem; border: 1px solid #e5e7eb;">
+                            ${apa}
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('${apa.replace(/'/g, "\\'")}''); this.textContent='✅ Đã copy!'; setTimeout(() => this.textContent='📋 Copy', 1000)" 
+                                style="margin-top: 0.8rem; padding: 0.6rem 1.2rem; background: #5cc0eb; color: white; border: none; border-radius: 0.6rem; cursor: pointer; font-size: 1.3rem;">
+                            📋 Copy
+                        </button>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.6rem;">
+                        <label style="font-weight: 600; display: block; margin-bottom: 0.8rem; color: #1f2937;">MLA:</label>
+                        <div style="background: #fafafa; padding: 1.2rem; border-radius: 0.8rem; font-size: 1.4rem; border: 1px solid #e5e7eb;">
+                            ${mla}
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('${mla.replace(/'/g, "\\'")}''); this.textContent='✅ Đã copy!'; setTimeout(() => this.textContent='📋 Copy', 1000)" 
+                                style="margin-top: 0.8rem; padding: 0.6rem 1.2rem; background: #5cc0eb; color: white; border: none; border-radius: 0.6rem; cursor: pointer; font-size: 1.3rem;">
+                            📋 Copy
+                        </button>
+                    </div>
+                    
+                    <div style="margin-bottom: 2rem;">
+                        <label style="font-weight: 600; display: block; margin-bottom: 0.8rem; color: #1f2937;">Chicago:</label>
+                        <div style="background: #fafafa; padding: 1.2rem; border-radius: 0.8rem; font-size: 1.4rem; border: 1px solid #e5e7eb;">
+                            ${chicago}
+                        </div>
+                        <button onclick="navigator.clipboard.writeText('${chicago.replace(/'/g, "\\'")}''); this.textContent='✅ Đã copy!'; setTimeout(() => this.textContent='📋 Copy', 1000)" 
+                                style="margin-top: 0.8rem; padding: 0.6rem 1.2rem; background: #5cc0eb; color: white; border: none; border-radius: 0.6rem; cursor: pointer; font-size: 1.3rem;">
+                            📋 Copy
+                        </button>
+                    </div>
+                    
+                    <button onclick="this.closest('.modal-overlay').remove()" 
+                            style="width: 100%; padding: 1.2rem; background: #f3f4f6; color: #1f2937; border: none; border-radius: 0.8rem; cursor: pointer; font-size: 1.5rem; font-weight: 600;">
+                        Đóng
+                    </button>
+                </div>
+            `;
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.remove();
+            };
+            
+            document.body.appendChild(modal);
         };
         
         // Project actions
