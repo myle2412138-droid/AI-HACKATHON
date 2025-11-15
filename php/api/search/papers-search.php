@@ -45,10 +45,30 @@ if (empty($query)) {
 }
 
 try {
+    // Check if we can use external API calls
+    $canUseExternalAPI = ini_get('allow_url_fopen') && function_exists('file_get_contents');
+    
+    if (!$canUseExternalAPI) {
+        // Return empty results if server doesn't allow external API calls
+        echo json_encode([
+            'success' => true,
+            'query' => $query,
+            'results' => [],
+            'total' => 0,
+            'message' => 'External API calls disabled on server. Please enable allow_url_fopen in php.ini',
+            'sources' => []
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+    
     // Verify service file exists
-    if (!file_exists(__DIR__ . '/../../services/papers-api.php')) {
+    $serviceFile = __DIR__ . '/../../services/papers-api.php';
+    if (!file_exists($serviceFile)) {
         throw new Exception('PapersAPI service file not found');
     }
+    
+    // Try to load the service
+    require_once $serviceFile;
     
     // Initialize API
     if (!class_exists('PapersAPI')) {
