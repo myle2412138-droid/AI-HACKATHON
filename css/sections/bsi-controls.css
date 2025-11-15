@@ -14,6 +14,27 @@
     position: sticky;
     top: calc(var(--header-height, 80px) + 2rem);
     box-shadow: var(--shadow-lg, 0 10px 40px rgba(0, 0, 0, 0.3));
+    max-height: calc(100vh - var(--header-height, 80px) - 4rem);
+    overflow-y: auto;
+}
+
+/* Scrollbar styling for control panel */
+.bsi-control-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.bsi-control-panel::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.bsi-control-panel::-webkit-scrollbar-thumb {
+    background: rgba(92, 192, 235, 0.3);
+    border-radius: 3px;
+}
+
+.bsi-control-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(92, 192, 235, 0.5);
 }
 
 .control-header {

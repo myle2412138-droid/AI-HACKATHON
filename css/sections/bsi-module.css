@@ -80,6 +80,14 @@
     color: var(--text-primary, #ffffff);
 }
 
+.sidebar-subtitle {
+    font-size: 1.3rem;
+    color: var(--text-secondary, #94a3b8);
+    margin-top: 0.5rem;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
 /* Parameter Groups */
 .param-group {
     margin-bottom: 2.4rem;
@@ -108,6 +116,108 @@
     font-size: 1.2rem;
     color: var(--text-secondary, #94a3b8);
     margin-top: 0.5rem;
+}
+
+.param-hint.mini {
+    font-size: 1.1rem;
+    margin-top: 0.3rem;
+}
+
+/* Collapsible Parameter Groups */
+.param-group.collapsible .collapse-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 1.5rem;
+    background: rgba(179, 146, 240, 0.1);
+    border: 1px solid rgba(179, 146, 240, 0.3);
+    border-radius: 1rem;
+    color: var(--text-primary, #ffffff);
+    font-size: 1.4rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-fast, 0.2s);
+    margin-bottom: 0;
+}
+
+.param-group.collapsible .collapse-toggle:hover {
+    background: rgba(179, 146, 240, 0.15);
+    border-color: var(--accent-purple, #B392F0);
+}
+
+.param-group.collapsible .collapse-toggle i.fa-brain {
+    color: var(--accent-purple, #B392F0);
+}
+
+.param-group.collapsible .collapse-toggle .toggle-icon {
+    transition: transform 0.3s ease;
+    color: var(--accent-purple, #B392F0);
+}
+
+.param-group.collapsible.expanded .collapse-toggle .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.param-group.collapsible .collapse-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.4s ease;
+    padding: 0 1.5rem;
+}
+
+.param-group.collapsible.expanded .collapse-content {
+    max-height: 800px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 0.8rem;
+}
+
+/* Sub-parameter Items (for advanced controls) */
+.param-subitem {
+    margin-bottom: 1.8rem;
+}
+
+.param-subitem:last-child {
+    margin-bottom: 0;
+}
+
+.param-subitem label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    font-size: 1.3rem;
+}
+
+.param-subitem label span:first-child {
+    color: var(--text-secondary, #94a3b8);
+}
+
+.param-subitem .param-value {
+    font-size: 1.4rem;
+    color: var(--accent-purple, #B392F0);
+}
+
+/* Mini Slider for sub-parameters */
+.param-slider.mini {
+    height: 4px;
+    background: linear-gradient(90deg, rgba(179, 146, 240, 0.3), var(--accent-purple, #B392F0));
+}
+
+.param-slider.mini::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--accent-purple, #B392F0);
+    box-shadow: 0 2px 6px rgba(179, 146, 240, 0.4);
+}
+
+.param-slider.mini::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--accent-purple, #B392F0);
+    box-shadow: 0 2px 6px rgba(179, 146, 240, 0.4);
 }
 
 /* Range Slider */
@@ -289,6 +399,17 @@
     border-color: var(--main-color, #5cc0eb);
     transform: translateY(-5px);
     box-shadow: 0 10px 30px rgba(92, 192, 235, 0.2);
+}
+
+/* Disable hover effects for no-hover class */
+.scenario-card.no-hover {
+    cursor: default;
+}
+
+.scenario-card.no-hover:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: none;
+    box-shadow: none;
 }
 
 .scenario-card.selected {
