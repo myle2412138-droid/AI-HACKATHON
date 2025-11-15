@@ -39,8 +39,8 @@ try {
     
     // Try to save to database if available
     if (file_exists(__DIR__ . '/../../config/database.php')) {
-        require_once __DIR__ . '/../../config/database.php';
-        $db = getDBConnection();
+        @require_once __DIR__ . '/../../config/database.php';;
+        $db = @getDBConnection();
         
         // Check if table exists
         $tableCheck = $db->query("SHOW TABLES LIKE 'search_logs'");

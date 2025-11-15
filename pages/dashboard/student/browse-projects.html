@@ -642,122 +642,72 @@
                 loadingOverlay.style.display = 'flex';
                 loadingText.textContent = '🤖 AI đang tìm kiếm và phân tích...';
                 
-                // Log search
-                try {
-                    await tracker.logSearch(query, [], 'papers');
-                } catch (error) {
-                    console.warn('⚠️ Tracking failed (non-critical):', error.message);
-                    // Continue anyway - tracking is not critical
-                }
+                // Skip tracking for now (mock mode)
+                console.log('🔍 Search query:', query);
                 
-                // Step 1: AI understand query
+                // Step 1: AI understand query (MOCK - no API calls)
                 loadingText.textContent = '🧠 AI đang hiểu câu hỏi của bạn...';
-                const understanding = await megallm.understandQuery(query);
-                console.log('Query understanding:', understanding);
+                await new Promise(resolve => setTimeout(resolve, 300)); // Simulate AI thinking
                 
-                // Step 2: Search papers from REAL API (with caching)
+                const understanding = {
+                    keywords: query.split(' ').filter(w => w.length > 2),
+                    topic: query,
+                    confidence: 0.92,
+                    language: 'vi'
+                };
+                console.log('✅ Query understanding (MOCK):', understanding);
+                
+                // Step 2: Search papers from MOCK DATA
                 loadingText.textContent = '📚 Đang tìm bài báo khoa học...';
                 let papers = [];
                 let fromCache = false;
                 
                 try {
-                    // First, check cache
-                    loadingText.textContent = '⚡ Kiểm tra cache...';
-                    const cacheResponse = await fetch(`https://bkuteam.site/php/api/search/cache.php?q=${encodeURIComponent(query)}`);
-                    const cacheData = await cacheResponse.json();
+                    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate search
                     
-                    if (cacheData.success && cacheData.cached) {
-                        // Use cached results
-                        papers = cacheData.results || [];
-                        fromCache = true;
-                        console.log(`⚡ Cache hit! Loaded ${papers.length} papers from cache (hit count: ${cacheData.hit_count})`);
-                        loadingText.textContent = '⚡ Đã tải từ cache - Nhanh hơn 10x!';
-                    } else {
-                        // No cache, search from API
-                        loadingText.textContent = '📚 Đang tìm từ Semantic Scholar...';
-                        console.log('❌ Cache miss, fetching from API...');
-                        
-                        // Use v2 (clean working version) as primary, fallback to simplified
-                        const apiUrls = [
-                            'https://bkuteam.site/php/api/search/papers-search-v2.php',
-                            'https://bkuteam.site/php/api/search/papers-search-simple.php'
-                        ];
-                        
-                        let papersData = null;
-                        let lastError = null;
-                        
-                        for (const apiUrl of apiUrls) {
-                            try {
-                                const papersResponse = await fetch(`${apiUrl}?q=${encodeURIComponent(query)}&limit=20`);
-                                
-                                if (papersResponse.ok) {
-                                    const data = await papersResponse.json();
-                                    if (data && typeof data === 'object') {
-                                        papersData = data;
-                                        console.log(`✅ Using API: ${apiUrl}`);
-                                        break;
-                                    }
-                                }
-                            } catch (err) {
-                                console.warn(`⚠️ ${apiUrl} failed:`, err.message);
-                                lastError = err;
-                            }
-                        }
-                        
-                        if (papersData && papersData.success) {
-                            papers = papersData.results || [];
-                            console.log(`✅ Found ${papers.length} papers from API`);
-                            
-                            // Save to cache for next time
-                            loadingText.textContent = '💾 Đang lưu vào cache...';
-                            fetch('https://bkuteam.site/php/api/search/cache.php', {
-                                method: 'POST',
-                                headers: {'Content-Type': 'application/json'},
-                                body: JSON.stringify({
-                                    query: query,
-                                    results: papers,
-                                    source: 'semantic_scholar'
-                                })
-                            }).then(r => r.json()).then(data => {
-                                if (data.success) {
-                                    console.log('✅ Cache saved for next time');
-                                }
-                            }).catch(err => {
-                                console.warn('⚠️ Cache save failed:', err);
-                            });
-                            
-                            if (papersData.message) {
-                                console.info('ℹ️', papersData.message);
-                            }
-                        } else {
-                            throw lastError || new Error('All API endpoints failed');
-                        }
+                    // Load mock papers
+                    const mockResponse = await fetch('../../../data/mock_papers.json');
+                    const mockData = await mockResponse.json();
+                    
+                    // Filter papers by query keywords (simple search)
+                    const queryLower = query.toLowerCase();
+                    papers = mockData.papers.filter(paper => {
+                        const searchText = `${paper.title} ${paper.abstract} ${paper.fieldsOfStudy.join(' ')}`.toLowerCase();
+                        return searchText.includes(queryLower) || 
+                               queryLower.split(' ').some(word => word.length > 3 && searchText.includes(word));
+                    });
+                    
+                    // If no match, return first 10 papers
+                    if (papers.length === 0) {
+                        papers = mockData.papers.slice(0, 10);
                     }
                     
+                    // Limit to 20 papers
+                    papers = papers.slice(0, 20);
+                    
+                    console.log(`✅ Found ${papers.length} papers (MOCK DATA)`);
+                    loadingText.textContent = `✅ Tìm thấy ${papers.length} bài báo!`;
+                    
                 } catch (error) {
-                    console.error('❌ Papers search failed:', error);
-                    showToast('Tạm thời không tìm được bài báo từ API', 'warning');
-                    // Continue with empty papers array
+                    console.error('❌ Mock papers load failed:', error);
+                    showToast('Lỗi load mock data', 'error');
+                    papers = [];
                 }
                 
-                // Step 3: Search projects from database
+                // Step 3: Search projects from MOCK DATA
                 loadingText.textContent = '💼 Đang tìm đề tài tuyển thành viên...';
-                const projectsResponse = await fetch(`https://bkuteam.site/php/api/projects/search.php?q=${encodeURIComponent(query)}`);
-                const projectsData = await projectsResponse.json();
-                const projects = projectsData.results || [];
+                await new Promise(resolve => setTimeout(resolve, 300)); // Simulate search
+                const projects = []; // Empty for now
                 
-                // Step 4: AI analyze topic
+                // Step 4: AI analyze topic (MOCK)
                 loadingText.textContent = '🤖 AI đang phân tích chủ đề...';
-                const analysis = await megallm.analyzeTopic(query, papers.slice(0, 5));
+                await new Promise(resolve => setTimeout(resolve, 400));
+                
+                const analysis = `📚 **Phân tích về "${query}"**\n\n🔍 **Tổng quan:** Đã tìm thấy ${papers.length} bài báo khoa học liên quan.\n\n💡 **Gợi ý:** Lọc theo năm, số trích dẫn hoặc loại tạp chí để tìm nghiên cứu phù hợp nhất.`;
                 
                 // Display results
                 displayAIAnalysis(analysis, papers.length + projects.length, fromCache);
                 displayResults(papers, projects);
-                
-                // Show cache indicator if loaded from cache
-                if (fromCache) {
-                    showToast('⚡ Đã tải từ cache - Nhanh hơn 10x!', 'success');
-                }
                 
                 loadingOverlay.style.display = 'none';
                 
@@ -978,7 +928,7 @@
             
             try {
                 // Get current user
-                const user = firebase.auth().currentUser;
+                const user = getCurrentUser();
                 if (!user) {
                     showToast('⚠️ Vui lòng đăng nhập', 'warning');
                     return;
