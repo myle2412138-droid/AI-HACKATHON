@@ -17,24 +17,36 @@ class PapersAPI {
             'fields' => 'paperId,title,abstract,authors,year,citationCount,url,openAccessPdf,publicationDate,venue'
         ]);
         
-        $ch = curl_init("$url?$params");
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => ['Accept: application/json'],
-            CURLOPT_TIMEOUT => 10, // 10 second timeout
-            CURLOPT_CONNECTTIMEOUT => 5,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYPEER => false // For development
+        // Use file_get_contents instead of CURL (for servers without curl extension)
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'header' => "Accept: application/json\r\n",
+                'timeout' => 10,
+                'ignore_errors' => true
+            ],
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false
+            ]
         ]);
         
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
+        $response = @file_get_contents("$url?$params", false, $context);
         
-        if ($curlError) {
-            error_log('CURL error: ' . $curlError);
-            throw new Exception('Network error: ' . $curlError);
+        if ($response === false) {
+            error_log('Semantic Scholar API: Network error');
+            throw new Exception('Network error: Could not connect to Semantic Scholar API');
+        }
+        
+        // Get HTTP response code
+        $httpCode = 200;
+        if (isset($http_response_header)) {
+            foreach ($http_response_header as $header) {
+                if (preg_match('/^HTTP\/\d\.\d\s+(\d+)/', $header, $matches)) {
+                    $httpCode = (int)$matches[1];
+                    break;
+                }
+            }
         }
         
         if ($httpCode !== 200) {
@@ -44,7 +56,7 @@ class PapersAPI {
         
         $data = json_decode($response, true);
         if (!$data || !isset($data['data'])) {
-            error_log('Invalid JSON response: ' . $response);
+            error_log('Invalid JSON response from Semantic Scholar');
             throw new Exception('Invalid API response');
         }
         
