@@ -1,0 +1,327 @@
+/* ===================================
+   Modal Components
+   =================================== */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 2rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.modal-overlay.show {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-dialog {
+    background: white;
+    border-radius: 1.6rem;
+    max-width: 70rem;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s;
+}
+
+.modal-overlay.show .modal-dialog {
+    transform: scale(1);
+}
+
+.modal-header {
+    padding: 2.4rem;
+    border-bottom: 2px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header h2 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.modal-close {
+    width: 4rem;
+    height: 4rem;
+    border: none;
+    background: #f3f4f6;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 2rem;
+    color: #6b7280;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: #e5e7eb;
+    color: #1a1a1a;
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    padding: 2.4rem;
+    max-height: calc(90vh - 16rem);
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 2.4rem;
+    border-top: 2px solid #e5e7eb;
+    display: flex;
+    gap: 1.2rem;
+    justify-content: flex-end;
+}
+
+/* Apply Modal Specific */
+.project-preview {
+    background: #f8f9fa;
+    padding: 2rem;
+    border-radius: 1.2rem;
+    margin-bottom: 2.4rem;
+}
+
+.project-preview h3 {
+    font-size: 1.8rem;
+    margin-bottom: 0.8rem;
+}
+
+.project-preview p {
+    color: #6b7280;
+    font-size: 1.4rem;
+}
+
+.ai-suggest {
+    margin-top: 1rem;
+}
+
+/* Report Modal */
+.report-modal {
+    background: white;
+    border-radius: 1.6rem;
+    max-width: 100rem;
+    width: 100%;
+}
+
+.report-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 3.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+}
+
+.report-meta {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.ai-avatar {
+    width: 8rem;
+    height: 8rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+}
+
+.report-meta h2 {
+    font-size: 2.8rem;
+    margin-bottom: 0.8rem;
+}
+
+.report-meta p {
+    opacity: 0.9;
+    font-size: 1.4rem;
+}
+
+.score-circle {
+    width: 10rem;
+    height: 10rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    border: 4px solid white;
+}
+
+.score-circle span {
+    font-size: 3.6rem;
+    font-weight: 700;
+}
+
+.report-body {
+    padding: 3.2rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.report-section {
+    margin-bottom: 3.2rem;
+    padding: 2.4rem;
+    background: #f8f9fa;
+    border-radius: 1.2rem;
+}
+
+.report-section h3 {
+    font-size: 2rem;
+    margin-bottom: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.report-section.summary {
+    background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+    border-left: 4px solid #3B82F6;
+}
+
+.report-section.strengths {
+    background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+    border-left: 4px solid #10B981;
+}
+
+.report-section.concerns {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    border-left: 4px solid #F59E0B;
+}
+
+.report-section.warnings {
+    background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+    border-left: 4px solid #EF4444;
+}
+
+.report-section ul, .report-section ol {
+    margin-left: 2rem;
+    line-height: 2;
+}
+
+.focus-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    margin-bottom: 1.6rem;
+}
+
+.tag-large {
+    padding: 1rem 2rem;
+    background: white;
+    border: 2px solid #5cc0eb;
+    color: #5cc0eb;
+    border-radius: 3rem;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.warning-item {
+    display: flex;
+    gap: 1.6rem;
+    padding: 2rem;
+    background: white;
+    border-radius: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.warning-item i {
+    font-size: 2.4rem;
+    color: #F59E0B;
+}
+
+.warning-item h4 {
+    margin-bottom: 0.8rem;
+}
+
+.gaps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
+    gap: 1.6rem;
+}
+
+.gap-item {
+    padding: 2rem;
+    background: white;
+    border-radius: 1rem;
+}
+
+.gap-item h4 {
+    margin-bottom: 0.8rem;
+    color: #DC2626;
+}
+
+.paper-item {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    padding: 1.6rem;
+    background: white;
+    border-radius: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.paper-priority {
+    padding: 0.6rem 1.2rem;
+    background: #EF4444;
+    color: white;
+    border-radius: 0.6rem;
+    font-weight: 700;
+    font-size: 1.3rem;
+    white-space: nowrap;
+}
+
+.report-footer {
+    padding: 2.4rem;
+    border-top: 2px solid #e5e7eb;
+    display: flex;
+    gap: 1.2rem;
+    justify-content: flex-end;
+    background: #f8f9fa;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-dialog {
+        margin: 0;
+        border-radius: 0;
+        max-height: 100vh;
+    }
+    
+    .report-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .report-body {
+        padding: 2rem;
+    }
+    
+    .paper-card {
+        grid-template-columns: 1fr;
+    }
+    
+    .gaps-grid {
+        grid-template-columns: 1fr;
+    }
+}
+

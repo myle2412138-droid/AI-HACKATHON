@@ -1,0 +1,405 @@
+/* ===================================
+   Feed Components - Facebook/LinkedIn Style
+   =================================== */
+
+.feed-container {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+/* Search Bar */
+.search-container {
+    background: white;
+    border-radius: 1.2rem;
+    padding: 2.4rem;
+    margin-bottom: 2.4rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 1.4rem 2rem;
+    background: #f8f9fa;
+    border: 2px solid #e5e7eb;
+    border-radius: 5rem;
+    transition: all 0.3s;
+}
+
+.search-bar:focus-within {
+    background: white;
+    border-color: #5cc0eb;
+    box-shadow: 0 0 0 4px rgba(92, 192, 235, 0.1);
+}
+
+.search-bar i {
+    font-size: 1.8rem;
+    color: #6b7280;
+}
+
+.search-bar input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 1.6rem;
+    outline: none;
+    color: #1a1a1a;
+}
+
+.search-bar input::placeholder {
+    color: #9ca3af;
+}
+
+.btn-search {
+    padding: 1rem 2.4rem;
+    background: linear-gradient(135deg, #5cc0eb 0%, #B392F0 100%);
+    color: white;
+    border: none;
+    border-radius: 3rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.btn-search:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(92, 192, 235, 0.4);
+}
+
+/* AI Insight Card */
+.ai-insight-card {
+    background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+    border: 2px solid #818CF8;
+    border-radius: 1.6rem;
+    padding: 2.4rem;
+    margin-bottom: 2.4rem;
+    box-shadow: 0 4px 12px rgba(129, 140, 248, 0.2);
+}
+
+.insight-header {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    margin-bottom: 2rem;
+}
+
+.ai-avatar-animated {
+    width: 6rem;
+    height: 6rem;
+    background: linear-gradient(135deg, #818CF8 0%, #6366F1 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    color: white;
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(129, 140, 248, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(129, 140, 248, 0.8); }
+}
+
+.insight-header h3 {
+    font-size: 2.2rem;
+    color: #1e1b4b;
+    margin: 0;
+}
+
+.insight-content {
+    color: #312e81;
+    line-height: 1.8;
+}
+
+.insight-section {
+    margin-bottom: 1.6rem;
+    padding: 1.6rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 1rem;
+}
+
+.insight-section h4 {
+    margin-bottom: 0.8rem;
+    font-size: 1.6rem;
+}
+
+.insight-section.warning {
+    border-left: 4px solid #F59E0B;
+}
+
+.insight-section.success {
+    border-left: 4px solid #10B981;
+}
+
+/* Feed Items */
+.feed-items {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+}
+
+/* Paper Card */
+.feed-card {
+    background: white;
+    border-radius: 1.6rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s;
+}
+
+.feed-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+}
+
+.paper-card {
+    display: grid;
+    grid-template-columns: 20rem 1fr;
+    gap: 0;
+}
+
+.card-thumbnail {
+    position: relative;
+    height: 100%;
+    min-height: 24rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.card-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-type-badge {
+    position: absolute;
+    top: 1.2rem;
+    left: 1.2rem;
+    padding: 0.6rem 1.2rem;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    color: white;
+    border-radius: 2rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.card-year {
+    position: absolute;
+    bottom: 1.2rem;
+    right: 1.2rem;
+    padding: 0.6rem 1.2rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: #1a1a1a;
+    border-radius: 0.6rem;
+    font-weight: 700;
+    font-size: 1.4rem;
+}
+
+.card-content {
+    padding: 2.4rem;
+}
+
+.card-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 1.2rem;
+    line-height: 1.4;
+}
+
+.card-authors {
+    color: #6b7280;
+    font-size: 1.4rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.6rem;
+    margin-bottom: 1.6rem;
+    font-size: 1.4rem;
+    color: #6b7280;
+}
+
+.card-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.card-abstract {
+    font-size: 1.5rem;
+    line-height: 1.7;
+    color: #374151;
+    margin-bottom: 1.6rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 1.6rem;
+}
+
+.tag {
+    padding: 0.6rem 1.2rem;
+    background: #F3F4F6;
+    color: #4B5563;
+    border-radius: 0.6rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.tag:hover {
+    background: #E5E7EB;
+}
+
+.card-actions {
+    display: flex;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 0.8rem 1.6rem;
+    border-radius: 0.8rem;
+    font-size: 1.4rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #5cc0eb 0%, #B392F0 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(92, 192, 235, 0.4);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid #e5e7eb;
+    color: #6b7280;
+}
+
+.btn-outline:hover {
+    border-color: #5cc0eb;
+    color: #5cc0eb;
+}
+
+/* Project Card (Job Posting Style) */
+.project-card {
+    padding: 2.4rem;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    margin-bottom: 1.6rem;
+}
+
+.lecturer-avatar {
+    width: 5rem;
+    height: 5rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.hiring-badge {
+    margin-left: auto;
+    padding: 0.6rem 1.4rem;
+    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+    color: white;
+    border-radius: 2rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 6rem 2rem;
+    color: #9ca3af;
+}
+
+.empty-state i {
+    font-size: 6rem;
+    margin-bottom: 2rem;
+    opacity: 0.3;
+}
+
+.empty-state p {
+    font-size: 1.6rem;
+    margin-bottom: 2rem;
+}
+
+/* Loading State */
+.skeleton-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+}
+
+.skeleton-card {
+    background: white;
+    border-radius: 1.6rem;
+    padding: 2.4rem;
+    height: 30rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .feed-container {
+        padding: 1.6rem;
+    }
+    
+    .paper-card {
+        grid-template-columns: 1fr;
+    }
+    
+    .card-thumbnail {
+        min-height: 20rem;
+    }
+    
+    .card-content {
+        padding: 2rem;
+    }
+    
+    .search-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-search {
+        justify-content: center;
+    }
+}
+

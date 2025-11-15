@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm Đề Tài - Victoria AI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../../../css/components/feed.css">
+    <link rel="stylesheet" href="../../../css/components/modal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-container">
+            <div class="logo" onclick="window.location.href='index.html'">
+                <img src="../../../assets/logo_cropped.png" alt="Victoria AI">
+                <span>Victoria AI</span>
+                <span class="role-badge student">Sinh Viên</span>
+            </div>
+            
+            <nav class="main-nav">
+                <a href="index.html" class="nav-item">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="browse-projects.html" class="nav-item active">
+                    <i class="fas fa-search"></i> Tìm Đề Tài
+                </a>
+            </nav>
+            
+            <div class="user-menu">
+                <button class="btn-icon" onclick="window.location.href='../settings.html'">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button class="btn-logout" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="feed-container">
+            <!-- AI-Powered Search Bar -->
+            <div class="search-container">
+                <h2 style="margin-bottom: 1.6rem; font-size: 2.4rem;">
+                    🔍 Tìm Kiếm Thông Minh với AI
+                </h2>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input 
+                        type="text" 
+                        id="aiSearchInput"
+                        placeholder="VD: Machine Learning trong Y tế, Computer Vision cho nông nghiệp..." 
+                        onkeypress="if(event.key==='Enter') performSearch()"
+                    >
+                    <button class="btn-search" onclick="performSearch()">
+                        <i class="fas fa-magic"></i> AI Search
+                    </button>
+                </div>
+                <div class="search-suggestions" id="suggestions" style="display: none;">
+                    <!-- AI suggestions will appear here -->
+                </div>
+            </div>
+
+            <!-- AI Analysis Card (Hiện sau search) -->
+            <div class="ai-insight-card" id="aiInsight" style="display: none;">
+                <div class="insight-header">
+                    <div class="ai-avatar-animated">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div>
+                        <h3>🤖 Victoria AI Analysis</h3>
+                        <p id="aiInsightSubtitle">Đang phân tích...</p>
+                    </div>
+                </div>
+                
+                <div class="insight-content" id="aiInsightContent">
+                    <!-- AI analysis will be shown here -->
+                </div>
+                
+                <div class="insight-actions" style="margin-top: 2rem; display: flex; gap: 1.2rem;">
+                    <button class="btn-sm btn-primary" onclick="askMoreDetails()">
+                        💬 Hỏi Thêm
+                    </button>
+                    <button class="btn-sm btn-outline" onclick="saveAnalysis()">
+                        💾 Lưu Analysis
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feed Items (Mixed: Papers + Projects) -->
+            <div class="feed-items" id="feedItems">
+                <!-- Results will be loaded here -->
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <p>Nhập từ khóa và tìm kiếm để khám phá đề tài và bài báo phù hợp</p>
+                    <p class="text-sm">AI sẽ tự động phân tích và gợi ý cho bạn!</p>
+                </div>
+            </div>
+            
+            <!-- Load More -->
+            <div class="load-more" id="loadMore" style="display: none; text-align: center; margin-top: 3.2rem;">
+                <button class="btn-outline" onclick="loadMoreResults()">
+                    <i class="fas fa-arrow-down"></i>
+                    Xem Thêm
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner"></div>
+        <p id="loadingText">Đang tìm kiếm...</p>
+    </div>
+
+    <script type="module">
+        import { logout } from "../../../js/auth-guard.js";
+        import { requireSpecificRole } from "../../../js/role-gate.js";
+        import { megallm } from "../../../js/megallm-client.js";
+        import SearchTracker from "../../../js/search-tracker.js";
+        import applyModal from "../../../js/components/apply-modal.js";
+        
+        // Auth check
+        let userData;
+        let tracker;
+        
+        try {
+            const { user, role } = await requireSpecificRole('student');
+            userData = user;
+            tracker = new SearchTracker(user.uid);
+            console.log('✅ Student authenticated');
+        } catch (error) {
+            console.error('Auth failed');
+        }
+        
+        // Perform AI-powered search
+        window.performSearch = async function() {
+            const query = document.getElementById('aiSearchInput').value.trim();
+            
+            if (!query) {
+                alert('Vui lòng nhập từ khóa tìm kiếm');
+                return;
+            }
+            
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            
+            try {
+                loadingOverlay.style.display = 'flex';
+                loadingText.textContent = '🤖 AI đang tìm kiếm và phân tích...';
+                
+                // Log search
+                await tracker.logSearch(query, [], 'papers');
+                
+                // Step 1: AI understand query
+                loadingText.textContent = '🧠 AI đang hiểu câu hỏi của bạn...';
+                const understanding = await megallm.understandQuery(query);
+                console.log('Query understanding:', understanding);
+                
+                // Step 2: Search papers
+                loadingText.textContent = '📚 Đang tìm bài báo khoa học...';
+                const papersResponse = await fetch(`https://bkuteam.site/php/api/search/papers-search.php?q=${encodeURIComponent(query)}&limit=20`);
+                const papersData = await papersResponse.json();
+                const papers = papersData.results || [];
+                
+                // Step 3: Search projects from database
+                loadingText.textContent = '💼 Đang tìm đề tài tuyển thành viên...';
+                const projectsResponse = await fetch(`https://bkuteam.site/php/api/projects/search.php?q=${encodeURIComponent(query)}`);
+                const projectsData = await projectsResponse.json();
+                const projects = projectsData.results || [];
+                
+                // Step 4: AI analyze topic
+                loadingText.textContent = '🤖 AI đang phân tích chủ đề...';
+                const analysis = await megallm.analyzeTopic(query, papers.slice(0, 5));
+                
+                // Display results
+                displayAIAnalysis(analysis, papers.length + projects.length);
+                displayResults(papers, projects);
+                
+                loadingOverlay.style.display = 'none';
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                loadingOverlay.style.display = 'none';
+                alert('Lỗi tìm kiếm: ' + error.message);
+            }
+        };
+        
+        // Display AI analysis
+        function displayAIAnalysis(analysis, totalResults) {
+            const card = document.getElementById('aiInsight');
+            const subtitle = document.getElementById('aiInsightSubtitle');
+            const content = document.getElementById('aiInsightContent');
+            
+            subtitle.textContent = `Dựa trên ${totalResults} kết quả`;
+            content.innerHTML = `<p style="line-height: 1.8; font-size: 1.6rem;">${analysis}</p>`;
+            
+            card.style.display = 'block';
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // Display mixed results
+        function displayResults(papers, projects) {
+            const container = document.getElementById('feedItems');
+            container.innerHTML = '';
+            
+            // Mix papers và projects
+            const mixed = mixResults(papers, projects);
+            
+            mixed.forEach((item, index) => {
+                if (item.type === 'paper') {
+                    container.appendChild(createPaperCard(item));
+                } else {
+                    container.appendChild(createProjectCard(item));
+                }
+            });
+            
+            if (mixed.length > 10) {
+                document.getElementById('loadMore').style.display = 'block';
+            }
+        }
+        
+        // Mix papers và projects intelligently
+        function mixResults(papers, projects) {
+            const mixed = [];
+            let pIndex = 0, prIndex = 0;
+            
+            // Mix: 2 papers, 1 project, repeat
+            while (pIndex < papers.length || prIndex < projects.length) {
+                // Add 2 papers
+                for (let i = 0; i < 2 && pIndex < papers.length; i++) {
+                    mixed.push({ ...papers[pIndex++], type: 'paper' });
+                }
+                
+                // Add 1 project
+                if (prIndex < projects.length) {
+                    mixed.push({ ...projects[prIndex++], type: 'project' });
+                }
+            }
+            
+            return mixed;
+        }
+        
+        // Create paper card
+        function createPaperCard(paper) {
+            const card = document.createElement('div');
+            card.className = 'feed-card paper-card';
+            card.innerHTML = `
+                <div class="card-thumbnail">
+                    <img src="${paper.thumbnail || '/assets/paper-default.png'}" 
+                         alt="" 
+                         onerror="this.src='/assets/paper-default.png'">
+                    <div class="card-type-badge">📄 Research Paper</div>
+                    <div class="card-year">${paper.year || 'N/A'}</div>
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">${paper.title}</h3>
+                    <div class="card-authors">
+                        <i class="fas fa-user"></i> ${paper.authors || 'Unknown'}
+                    </div>
+                    <div class="card-meta">
+                        <span>📖 ${paper.venue || paper.source}</span>
+                        <span>⭐ ${paper.citations || 0} citations</span>
+                    </div>
+                    <p class="card-abstract">${truncate(paper.abstract, 200)}</p>
+                    <div class="card-actions">
+                        <button class="btn-sm btn-primary" onclick="viewPaper('${paper.id}', '${escapeHtml(paper.title)}')">
+                            <i class="fas fa-book-open"></i> Đọc Bài
+                        </button>
+                        <button class="btn-sm btn-outline" onclick="savePaper('${paper.id}')">
+                            <i class="fas fa-bookmark"></i> Lưu
+                        </button>
+                        <button class="btn-sm btn-outline" onclick="citePaper('${paper.id}')">
+                            <i class="fas fa-quote-right"></i> Trích Dẫn
+                        </button>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+        
+        // Create project card
+        function createProjectCard(project) {
+            const card = document.createElement('div');
+            card.className = 'feed-card project-card';
+            card.innerHTML = `
+                <div class="card-header">
+                    <img src="${project.lecturer_avatar || '/assets/human2.png'}" 
+                         class="lecturer-avatar" alt="">
+                    <div>
+                        <h4>${project.lecturer_name || 'Giảng viên'}</h4>
+                        <p>${project.university || 'Victoria AI'}</p>
+                    </div>
+                    <span class="hiring-badge">🔥 Đang tuyển</span>
+                </div>
+                <h3 class="card-title">${project.title}</h3>
+                <div class="card-meta">
+                    <span>👥 ${project.current_students || 0}/${project.max_students || 3} students</span>
+                    <span>⏰ ${project.duration || '6 tháng'}</span>
+                    <span>📅 ${formatDate(project.created_at)}</span>
+                </div>
+                <p class="card-abstract">${truncate(project.description, 200)}</p>
+                <div class="card-tags">
+                    ${(project.tags || '').split(',').map(tag => 
+                        `<span class="tag">${tag.trim()}</span>`
+                    ).join('')}
+                </div>
+                <div class="card-actions">
+                    <button class="btn-sm btn-primary" onclick="applyToProject(${project.id})">
+                        ✈️ Apply Ngay
+                    </button>
+                    <button class="btn-sm btn-outline" onclick="viewProject(${project.id})">
+                        Chi Tiết
+                    </button>
+                    <button class="btn-sm btn-outline" onclick="saveProject(${project.id})">
+                        💾 Lưu
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+        
+        // Helper functions
+        function truncate(text, length) {
+            if (!text) return '';
+            return text.length > length ? text.substring(0, length) + '...' : text;
+        }
+        
+        function escapeHtml(text) {
+            return text.replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+        
+        function formatDate(date) {
+            if (!date) return 'N/A';
+            const d = new Date(date);
+            const now = new Date();
+            const diff = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+            
+            if (diff === 0) return 'Hôm nay';
+            if (diff === 1) return 'Hôm qua';
+            if (diff < 7) return diff + ' ngày trước';
+            return d.toLocaleDateString('vi-VN');
+        }
+        
+        // Paper actions
+        window.viewPaper = async function(paperId, paperTitle) {
+            await tracker.logPaperInteraction(
+                { id: paperId, title: paperTitle }, 
+                'view'
+            );
+            tracker.startTimeTracking(paperId, paperTitle);
+            
+            // Open paper in new tab
+            window.open(`https://www.semanticscholar.org/paper/${paperId}`, '_blank');
+        };
+        
+        window.savePaper = async function(paperId) {
+            await tracker.logPaperInteraction({ id: paperId }, 'save');
+            showToast('Đã lưu paper vào thư viện!', 'success');
+        };
+        
+        // Project actions
+        window.applyToProject = function(projectId) {
+            // Get project data
+            fetch(`https://bkuteam.site/php/api/projects/detail.php?id=${projectId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        applyModal.open(data.project);
+                    }
+                });
+        };
+        
+        window.saveProject = async function(projectId) {
+            // Save to database
+            showToast('Đã lưu đề tài!', 'success');
+        };
+        
+        // Toast notification
+        function showToast(message, type) {
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.className = `toast toast-${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            if (confirm('Bạn có chắc muốn đăng xuất?')) {
+                await logout();
+            }
+        });
+    </script>
+</body>
+</html>
+

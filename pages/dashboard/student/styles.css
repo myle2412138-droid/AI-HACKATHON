@@ -1,0 +1,206 @@
+/* ===================================
+   Student Dashboard Styles
+   =================================== */
+
+@import url('../../../css/components/feed.css');
+@import url('../../../css/components/modal.css');
+
+:root {
+    --main-color: #5cc0eb;
+    --accent-purple: #B392F0;
+    --student-color: #3B82F6;
+    --text-primary: #1a1a1a;
+    --text-secondary: #6b7280;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 1.5rem;
+    background: #f8f9fa;
+    color: var(--text-primary);
+}
+
+/* Reuse same header styles as lecturer */
+.dashboard-header {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-container {
+    max-width: 140rem;
+    margin: 0 auto;
+    padding: 1.6rem 3.2rem;
+    display: flex;
+    align-items: center;
+    gap: 3.2rem;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    cursor: pointer;
+}
+
+.logo img {
+    height: 4.5rem;
+}
+
+.logo span {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--main-color), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.role-badge.student {
+    padding: 0.6rem 1.4rem;
+    border-radius: 2rem;
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #60A5FA, var(--student-color));
+    color: white;
+}
+
+.main-nav {
+    display: flex;
+    gap: 0.8rem;
+    flex: 1;
+}
+
+.nav-item {
+    padding: 1rem 1.8rem;
+    border-radius: 1rem;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 600;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.nav-item:hover {
+    background: #f3f4f6;
+    color: var(--main-color);
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, var(--main-color), var(--accent-purple));
+    color: white;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+}
+
+.btn-icon, .btn-logout {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    border: none;
+    background: #f3f4f6;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+}
+
+.btn-icon:hover, .btn-logout:hover {
+    background: #e5e7eb;
+    color: var(--main-color);
+}
+
+/* Main Content */
+.dashboard-main {
+    padding: 3.2rem;
+}
+
+.dashboard-container {
+    max-width: 120rem;
+    margin: 0 auto;
+}
+
+/* Stats Grid - Same as lecturer */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2.4rem;
+    margin-bottom: 3.2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 2.4rem;
+    border-radius: 1.6rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.stat-icon {
+    width: 6rem;
+    height: 6rem;
+    border-radius: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    margin-bottom: 1.6rem;
+}
+
+.stat-blue .stat-icon {
+    background: linear-gradient(135deg, #DBEAFE, #BFDBFE);
+    color: #3B82F6;
+}
+
+.stat-orange .stat-icon {
+    background: linear-gradient(135deg, #FED7AA, #FDBA74);
+    color: #F97316;
+}
+
+.stat-purple .stat-icon {
+    background: linear-gradient(135deg, #E9D5FF, #DDD6FE);
+    color: #A855F7;
+}
+
+.stat-green .stat-icon {
+    background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+    color: #10B981;
+}
+
+.stat-content h3 {
+    font-size: 1.4rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.8rem;
+}
+
+.stat-number {
+    font-size: 3.6rem;
+    font-weight: 800;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-main {
+        padding: 2rem;
+    }
+}
+
