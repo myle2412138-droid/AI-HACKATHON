@@ -664,9 +664,9 @@
                 let papers = [];
                 
                 try {
-                    // Try real API first, fall back to simplified version if fails
+                    // Use v2 (clean working version) as primary, fallback to simplified
                     const apiUrls = [
-                        'https://bkuteam.site/php/api/search/papers-search.php',
+                        'https://bkuteam.site/php/api/search/papers-search-v2.php',
                         'https://bkuteam.site/php/api/search/papers-search-simple.php'
                     ];
                     
